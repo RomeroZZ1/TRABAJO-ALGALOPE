@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>2141 INVERSIONES | Simulador Pro DDP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root { --primary: #1e3a5f; --accent: #00c8ff; --glass: rgba(255, 255, 255, 0.95); }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: url('https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=2070') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(30, 58, 95, 0.8) 0%, rgba(0, 200, 255, 0.4) 100%); z-index: -1; }
+        
+        #login-section { height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: var(--glass); backdrop-filter: blur(10px); border-radius: 25px; padding: 40px; width: 450px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); }
+
+        #app-section { display: none; padding: 40px 20px; }
+        .glass-card { background: var(--glass); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px; }
+        .section-title { font-weight: 700; color: var(--primary); border-left: 5px solid var(--accent); padding-left: 15px; margin-bottom: 20px; }
+        
+        .search-results { position: absolute; width: 100%; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ddd; z-index: 1000; display: none; border-radius: 10px; }
+        .search-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; color: #333; }
+        .search-item:hover { background: #f0f8ff; }
+
+        .result-box { background: var(--primary); color: white; border-radius: 20px; padding: 30px; height: 100%; }
+        .total-display { font-size: 2.5rem; font-weight: 800; color: var(--accent); }
+        .btn-action { background: linear-gradient(45deg, var(--primary), var(--accent)); border: none; color: white; font-weight: 700; border-radius: 50px; transition: 0.3s; }
+        .btn-logout { border-radius: 50px; font-weight: 600; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+<div class="overlay"></div>
+
+<section id="login-section">
+    <div class="login-card">
+        <h2 class="fw-bold text-primary mb-4">2141 INVERSIONES</h2>
+        <input type="text" id="user" class="form-control mb-3 rounded-pill p-3" placeholder="Usuario (admin)">
+        <input type="password" id="pass" class="form-control mb-4 rounded-pill p-3" placeholder="Contraseña">
+        <button class="btn btn-action w-100 p-3" onclick="handleLogin()">INGRESAR AL SISTEMA</button>
+    </div>
+</section>
+
+<section id="app-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="section-title mb-0">🔍 Buscador Arancelario</h5>
+                        <button class="btn btn-outline-danger btn-sm btn-logout px-3" onclick="logout()">Cerrar Sesión</button>
+                    </div>
+                    
+                    <div class="position-relative mb-4">
+                        <input type="text" id="partida_search" class="form-control rounded-pill p-3" placeholder="Escriba código o nombre..." oninput="searchPartida()">
+                        <div id="results_box" class="search-results"></div>
+                    </div>
+
+                    <h5 class="section-title">📦 Datos de Operación</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="small fw-bold">Empresa / Cliente</label><input type="text" id="in_empresa" class="form-control" placeholder="Nombre cliente"></div>
+                        <div class="col-md-6"><label class="small fw-bold">Valor FOB (USD)</label><input type="number" id="in_fob" class="form-control" value="1000" oninput="runSim()"></div>
+                        <div class="col-md-4"><label class="small fw-bold">Flete Internacional (USD)</label><input type="number" id="in_flete" class="form-control" value="200" oninput="runSim()"></div>
+                        <div class="col-md-4"><label class="small fw-bold">Gastos Origen (USD)</label><input type="number" id="in_origen" class="form-control" value="50" oninput="runSim()"></div>
+                        <div class="col-md-4">
+                            <label class="small fw-bold">Volumen Total (m³)</label>
+                            <div class="input-group">
+                                <input type="number" id="in_vol" class="form-control" value="0.5" step="0.001" oninput="runSim()">
+                                <button class="btn btn-primary" onclick="toggleM3()">📏</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6"><label class="small fw-bold text-primary">Gastos en Destino (USD)</label><input type="number" id="in_destino" class="form-control" value="150" oninput="runSim()"></div>
+                        <div class="col-md-6"><label class="small fw-bold text-primary">Transporte Nacional (USD)</label><input type="number" id="in_trans_nac" class="form-control" value="100" oninput="runSim()"></div>
+                    </div>
+
+                    <div id="m3_helper" class="mt-3 p-3 border rounded bg-white shadow-sm" style="display:none;">
+                        <h6 class="fw-bold small text-primary">Cálculo de m³ por Medidas (cm)</h6>
+                        <div class="row g-2">
+                            <div class="col-3"><input type="number" id="c_l" class="form-control" placeholder="Largo" oninput="calcM3()"></div>
+                            <div class="col-3"><input type="number" id="c_a" class="form-control" placeholder="Ancho" oninput="calcM3()"></div>
+                            <div class="col-3"><input type="number" id="c_h" class="form-control" placeholder="Alto" oninput="calcM3()"></div>
+                            <div class="col-3"><input type="number" id="c_n" class="form-control" value="1" oninput="calcM3()"></div>
+                        </div>
+                        <div class="mt-2 small fw-bold">Equivale a: <span id="v_res_val">0</span> m³</div>
+                    </div>
+
+                    <h5 class="section-title mt-5">📋 Historial</h5>
+                    <select id="filtro_historial" class="form-select w-50 mb-3" onchange="renderTabla()">
+                        <option value="Todas">Ver todas las empresas</option>
+                    </select>
+                    <div class="table-responsive bg-white rounded p-2">
+                        <table class="table table-hover">
+                            <thead><tr><th>Cliente</th><th>CIF</th><th>Total DDP</th></tr></thead>
+                            <tbody id="tabla_historial"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="result-box shadow-lg text-center d-flex flex-column justify-content-center">
+                    <h4 class="fw-bold mb-4">Liquidación DDP</h4>
+                    <div id="partida_label" class="badge bg-light text-dark mb-4 p-2 w-100">General (A:10% I:19%)</div>
+                    
+                    <div class="d-flex justify-content-between mb-2 small"><span>Seguro (0.5%):</span> <span id="out_seg"></span></div>
+                    <div class="d-flex justify-content-between mb-2 small"><span>Base CIF:</span> <span id="out_cif"></span></div>
+                    <div class="d-flex justify-content-between mb-2 small"><span>Impuestos:</span> <span id="out_imp"></span></div>
+                    <div class="d-flex justify-content-between mb-2 small"><span>Destino + Transp:</span> <span id="out_logistica"></span></div>
+                    <hr class="bg-white">
+                    <div class="py-3">
+                        <p class="small mb-0 opacity-75">COSTO TOTAL PUESTO EN BODEGA</p>
+                        <div class="total-display" id="out_total">$0.00</div>
+                    </div>
+                    
+                    <button class="btn btn-action w-100 mt-4 p-3 shadow" onclick="saveSim()">💾 GUARDAR COTIZACIÓN</button>
+                    <button class="btn btn-link text-white-50 btn-sm mt-3" onclick="logout()">Cerrar Sesión</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    const PARTIDAS_DATA = [
+        { code: "9807200000", desc: "Mensajería Expresa", a: 10, i: 19 },
+        { code: "8471300000", desc: "Portátiles", a: 0, i: 19 },
+        { code: "8711200000", desc: "Motos < 185cc", a: 20, i: 19 }
+    ];
+
+    let historial = [];
+    let p_activa = { a: 10, i: 19, desc: "General" };
+
+    function handleLogin() {
+        if(document.getElementById('user').value === "admin") {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('app-section').style.display = 'block';
+            runSim();
+        } else { alert("Acceso denegado"); }
+    }
+
+    function logout() {
+        if(confirm("¿Desea cerrar la sesión actual?")) {
+            document.getElementById('app-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'flex';
+        }
+    }
+
+    function searchPartida() {
+        const q = document.getElementById('partida_search').value.toLowerCase();
+        const box = document.getElementById('results_box');
+        if(q.length < 2) { box.style.display='none'; return; }
+        const f = PARTIDAS_DATA.filter(p => p.code.includes(q) || p.desc.toLowerCase().includes(q));
+        box.innerHTML = f.map(p => `<div class="search-item" onclick="setPartida('${p.code}','${p.desc}',${p.a},${p.i})"><strong>${p.code}</strong> - ${p.desc}</div>`).join('');
+        box.style.display = 'block';
+    }
+
+    function setPartida(c, d, a, i) {
+        p_activa = { a, i, desc: d };
+        document.getElementById('partida_search').value = c + " - " + d;
+        document.getElementById('results_box').style.display = 'none';
+        document.getElementById('partida_label').innerText = `${d} (A:${a}% I:${i}%)`;
+        runSim();
+    }
+
+    function toggleM3() {
+        const h = document.getElementById('m3_helper');
+        h.style.display = h.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function calcM3() {
+        const l = parseFloat(document.getElementById('c_l').value) || 0;
+        const a = parseFloat(document.getElementById('c_a').value) || 0;
+        const h = parseFloat(document.getElementById('c_h').value) || 0;
+        const n = parseFloat(document.getElementById('c_n').value) || 1;
+        const res = (l * a * h * n) / 1000000;
+        document.getElementById('v_res_val').innerText = res.toFixed(3);
+        document.getElementById('in_vol').value = res.toFixed(3);
+        runSim();
+    }
+
+    function runSim() {
+        const fob = parseFloat(document.getElementById('in_fob').value) || 0;
+        const flete = parseFloat(document.getElementById('in_flete').value) || 0;
+        const origen = parseFloat(document.getElementById('in_origen').value) || 0;
+        const destino = parseFloat(document.getElementById('in_destino').value) || 0;
+        const transporte = parseFloat(document.getElementById('in_trans_nac').value) || 0;
+
+        const seg = (fob + flete + origen) * 0.005;
+        const cif = fob + flete + origen + seg;
+        const aran = cif * (p_activa.a / 100);
+        const iva = (cif + aran) * (p_activa.i / 100);
+        
+        // El total DDP incluye ahora destino y transporte nacional
+        const ddp = cif + aran + iva + destino + transporte;
+
+        document.getElementById('out_seg').innerText = "$" + seg.toFixed(2);
+        document.getElementById('out_cif').innerText = "$" + cif.toLocaleString();
+        document.getElementById('out_imp').innerText = "$" + (aran + iva).toLocaleString();
+        document.getElementById('out_logistica').innerText = "$" + (destino + transporte).toLocaleString();
+        document.getElementById('out_total').innerText = "$" + ddp.toLocaleString();
+    }
+
+    function saveSim() {
+        const emp = document.getElementById('in_empresa').value || "Cliente Nuevo";
+        historial.push({
+            empresa: emp,
+            cif: document.getElementById('out_cif').innerText,
+            total: document.getElementById('out_total').innerText
+        });
+        
+        const filtro = document.getElementById('filtro_historial');
+        const emps = [...new Set(historial.map(h => h.empresa))];
+        filtro.innerHTML = '<option value="Todas">Ver todas las empresas</option>';
+        emps.forEach(e => filtro.innerHTML += `<option value="${e}">${e}</option>`);
+        
+        renderTabla();
+        alert("Cotización guardada.");
+    }
+
+    function renderTabla() {
+        const f = document.getElementById('filtro_historial').value;
+        const body = document.getElementById('tabla_historial');
+        body.innerHTML = "";
+        const lista = f === "Todas" ? historial : historial.filter(h => h.empresa === f);
+        lista.forEach(h => {
+            body.innerHTML += `<tr><td>${h.empresa}</td><td>${h.cif}</td><td class="fw-bold text-success">${h.total}</td></tr>`;
+        });
+    }
+</script>
+</body>
+</html>

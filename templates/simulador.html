@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>2141 INVERSIONES | Simulador Profesional</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-blue: #1e3a5f;
+            --light-blue: #2c7be5;
+        }
+
+        body { font-family: 'Poppins', sans-serif; background-color: #f5f7fa; color: #333; }
+
+        /* NAVBAR */
+        .navbar { padding: 15px 0; z-index: 1030 !important; }
+        .navbar-brand { font-weight: 700; color: var(--primary-blue); }
+        
+        .btn-nav-outline { 
+            border: 2px solid var(--primary-blue); color: var(--primary-blue); 
+            border-radius: 50px; padding: 8px 25px; text-decoration: none; font-weight: 600;
+        }
+        .btn-nav-primary { 
+            background: linear-gradient(45deg, var(--primary-blue), var(--light-blue));
+            color: white; border-radius: 50px; padding: 10px 25px; border: none; font-weight: 600;
+        }
+
+        /* HERO */
+        .hero {
+            position: relative; height: 90vh;
+            background: url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d') center/cover no-repeat;
+            display: flex; align-items: center; justify-content: center; text-align: center; color: white;
+        }
+        .hero-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+        .hero-content { position: relative; z-index: 2; max-width: 800px; padding: 20px; }
+        
+        .hero h1 { font-size: 48px; font-weight: 700; margin-bottom: 20px; }
+        .hero-buttons { display: flex; justify-content: center; gap: 20px; margin-top: 30px; }
+
+        .btn-main { background: white; color: var(--primary-blue); padding: 14px 28px; border-radius: 8px; font-weight: 600; border: none; text-decoration: none; transition: 0.3s; }
+        .btn-sec { background: transparent; border: 2px solid white; color: white; padding: 14px 28px; border-radius: 8px; font-weight: 600; transition: 0.3s; }
+        .btn-main:hover, .btn-sec:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+
+        /* SIMULADOR */
+        .card-simulador { border: none; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; }
+        .result-box { background-color: #f8f9fa; border-radius: 15px; padding: 25px; border-left: 5px solid var(--light-blue); }
+        
+        /* MODAL FIX */
+        .modal { z-index: 9999 !important; }
+        .modal-backdrop { z-index: 9990 !important; }
+        .modal-content { border-radius: 20px; border: none; color: #333 !important; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg bg-white shadow-sm fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">2141 INVERSIONES SAS</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navC">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navC">
+            <ul class="navbar-nav me-4">
+                <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link" href="/servicios">Servicios</a></li>
+                <li class="nav-item"><a class="nav-link" href="/contacto">Contacto</a></li>
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+                <a href="#" class="btn-nav-outline">Ingreso</a>
+                <a href="#" class="btn-nav-primary">Empieza gratis</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1>Simula tus importaciones antes de pagar un solo dólar</h1>
+        <p class="fs-5">Calcula costos reales, impuestos y fletes bajo normativa DIAN automáticamente.</p>
+        <div class="hero-buttons">
+            <a href="#simulador" class="btn-main">Probar simulador</a>
+            <button class="btn-sec" data-bs-toggle="modal" data-bs-target="#modalInfo">Ver cómo funciona</button>
+        </div>
+    </div>
+</section>
+
+<section id="simulador" class="py-5 mt-5">
+    <div class="container">
+        <div class="card card-simulador p-4 p-md-5 bg-white">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold text-primary">📦 Calculadora de Costos DDP</h2>
+                <p class="text-muted">Modelo referencial para importaciones en Colombia</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Valor Mercancía (USD)</label>
+                            <input type="number" id="in_valor" class="form-control" value="10000" oninput="runSim()">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Flete Internacional (USD)</label>
+                            <input type="number" id="in_flete" class="form-control" value="1200" oninput="runSim()">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Gastos Origen (USD)</label>
+                            <input type="number" id="in_origen" class="form-control" value="300" oninput="runSim()">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Arancel (%)</label>
+                            <select id="in_arancel" class="form-select" onchange="runSim()">
+                                <option value="0">0%</option>
+                                <option value="5">5%</option>
+                                <option value="10" selected>10%</option>
+                                <option value="15">15%</option>
+                                <option value="40">40%</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="in_iva" checked onchange="runSim()">
+                                <label class="form-check-label fw-bold">Aplicar IVA (19%)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="result-box">
+                        <h5 class="fw-bold mb-4">Resumen Estimado</h5>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Base CIF:</span>
+                            <span id="out_cif" class="fw-bold">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 text-danger">
+                            <span>Impuestos Totales:</span>
+                            <span id="out_imp" class="fw-bold">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Gastos Aduana/Logística:</span>
+                            <span class="fw-bold">$140.00</span>
+                        </div>
+                        <hr>
+                        <div class="text-center">
+                            <p class="small text-muted mb-0">COSTO TOTAL PUESTO EN COLOMBIA</p>
+                            <h2 id="out_total" class="display-6 fw-bold text-success">$0.00</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="modalInfo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">¿Cómo funciona?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="row g-3">
+                        <div class="col-4"><div class="fs-2">🔢</div><p class="small">Datos</p></div>
+                        <div class="col-4"><div class="fs-2">⚙️</div><p class="small">DIAN</p></div>
+                        <div class="col-4"><div class="fs-2">💵</div><p class="small">Total</p></div>
+                    </div>
+                </div>
+                <p class="text-muted small">El simulador calcula automáticamente la base CIF (incluyendo el 0.5% de seguro obligatorio) y aplica el gravamen arancelario y el IVA sobre la base de impuestos.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-primary w-100 rounded-pill" data-bs-dismiss="modal">¡Entendido!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-white py-4 text-center">
+    <div class="container">
+        <p class="mb-0">© 2026 2141 INVERSIONES SAS. Herramienta Profesional Logística.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function runSim() {
+        // Entradas
+        const valor = parseFloat(document.getElementById('in_valor').value) || 0;
+        const flete = parseFloat(document.getElementById('in_flete').value) || 0;
+        const origen = parseFloat(document.getElementById('in_origen').value) || 0;
+        const arancelPct = parseFloat(document.getElementById('in_arancel').value) || 0;
+        const aplicaIva = document.getElementById('in_iva').checked;
+
+        // Lógica de Negocio (Tu código Python convertido)
+        const seguro = (valor + flete + origen) * 0.005;
+        const cif = valor + flete + origen + seguro;
+        
+        const arancel = cif * (arancelPct / 100);
+        const iva = aplicaIva ? (cif + arancel) * 0.19 : 0;
+        
+        const gastosExtras = 140; // Aduana y transporte local base
+        const costoTotal = cif + arancel + iva + gastosExtras;
+
+        // Salidas formateadas
+        document.getElementById('out_cif').innerText = '$' + cif.toLocaleString('en-US', {minimumFractionDigits: 2});
+        document.getElementById('out_imp').innerText = '$' + (arancel + iva).toLocaleString('en-US', {minimumFractionDigits: 2});
+        document.getElementById('out_total').innerText = '$' + costoTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
+
+    // Iniciar cálculo al cargar
+    window.onload = runSim;
+</script>
+
+</body>
+</html>
