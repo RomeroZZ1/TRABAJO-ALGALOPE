@@ -14,6 +14,16 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
+# Busca donde configuras el driver y añade/reemplaza esto:
+chrome_options = Options()
+chrome_options.add_argument("--headless") # OBLIGATORIO para que Render no falle
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+
+# Luego inicias el driver usando esas opciones:
+# driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
+
 # ------------------------------
 # CORS CONFIGURADO
 # ------------------------------
