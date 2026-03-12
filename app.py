@@ -1,69 +1,22 @@
-from flask import Flask, request, jsonify, render_template
+import os
+import sqlite3
+import time
+from datetime import datetime, timedelta
+from flask import Flask, request, jsonify, render_template, abort
 from flask_cors import CORS
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import sqlite3
-import time
-import os
-from datetime import datetime, timedelta
 
 app = Flask(__name__)
 CORS(app)
 
-# ESTA LÍNEA TIENE QUE ESTAR AQUÍ ARRIBA
-DB_NAME = "database.db" 
+# 1. CONFIGURACIÓN INICIAL
+DB_NAME = "database.db"
 
-# Luego tus funciones
-def crear_tablas():
-    conn = sqlite3.connect(DB_NAME) # Ahora sí vas a saber qué es DB_NAME
-    # ... resto del código de la función ...
-
-# Y al final del archivo, asegúrate de que se llame así:
-if __name__ == "__main__":
-    crear_tablas() # Se llama aquí
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)def get_driver():
-        
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    # En Render, Chrome ya está en el PATH, no uses ChromeDriverManager
-    return webdriver.Chrome(options=chrome_options)
-
-# --- RUTAS ---
-@app.route("/")
-def home():
-    return render_template("index.html")
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
-    
-@app.route('/servicios')
-def servicios():
-    return render_template('servicios.html')
-
-@app.route('/blog')
-def blog():
-    return render_template("blog.html", posts=posts)
-
-@app.route('/contacto')
-def contacto():
-    return render_template("contacto.html")
-
-@app.route('/simulador')
-def simulador():
-    return render_template("simulador.html")
-
-@app.route('/login')
-def login():
-    return render_template("login.html")
-
+# Datos del Blog
 posts = [
     {
         "id": 1,
@@ -75,22 +28,10 @@ posts = [
     }
 ]
 
-
-
-@app.route('/blog/<slug>')
-def post_detail(slug):
-    post = next((p for p in posts if p["slug"] == slug), None)
-    if not post:
-        abort(404)
-    return render_template("post.html", post=post)
-
-# ------------------------------
-# CREAR TABLAS
-# ------------------------------
+# 2. FUNCIONES DE APOYO
 def crear_tablas():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS simulaciones (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,7 +40,6 @@ def crear_tablas():
         costo_total REAL
     )
     """)
-    
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS aranceles_cache (
         partida TEXT PRIMARY KEY,
@@ -108,83 +48,48 @@ def crear_tablas():
         ultima_actualizacion TEXT
     )
     """)
-    
     conn.commit()
     conn.close()
 
-crear_tablas()
+def get_driver():
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    # En Render, el binario ya está en el PATH, no se necesita Service o Manager
+    return webdriver.Chrome(options=chrome_options)
 
-# ------------------------------
-# OBTENER DESDE CACHE
-# ------------------------------
 def obtener_desde_cache(partida):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT gravamen, iva, ultima_actualizacion 
-        FROM aranceles_cache 
-        WHERE partida = ?
-    """, (partida,))
-    
+    cursor.execute("SELECT gravamen, iva, ultima_actualizacion FROM aranceles_cache WHERE partida = ?", (partida,))
     resultado = cursor.fetchone()
     conn.close()
-    
-    if not resultado:
-        return None
-    
+    if not resultado: return None
     gravamen, iva, fecha_str = resultado
-    
     try:
         fecha_cache = datetime.fromisoformat(fecha_str)
-        if datetime.now() - fecha_cache > timedelta(days=30):
-            return None
-    except:
-        return None
-    
+        if datetime.now() - fecha_cache > timedelta(days=30): return None
+    except: return None
     return {"gravamen": gravamen, "iva": iva, "desde_cache": True, "success": True}
 
-# ------------------------------
-# GUARDAR EN CACHE
-# ------------------------------
 def guardar_en_cache(partida, gravamen, iva):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    
-    cursor.execute("""
-        INSERT OR REPLACE INTO aranceles_cache (partida, gravamen, iva, ultima_actualizacion)
-        VALUES (?, ?, ?, ?)
-    """, (partida, gravamen, iva, datetime.now().isoformat()))
-    
+    cursor.execute("INSERT OR REPLACE INTO aranceles_cache (partida, gravamen, iva, ultima_actualizacion) VALUES (?, ?, ?, ?)",
+                   (partida, gravamen, iva, datetime.now().isoformat()))
     conn.commit()
     conn.close()
 
-# ------------------------------
-# SCRAPER DIAN
-# ------------------------------
 def scrapper_dian(subpartida):
-
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-
     driver = None
-    
     try:
-        driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()), 
-            options=chrome_options
-        )
-        
+        driver = get_driver()
         driver.get("https://muisca.dian.gov.co/WebArancel/DefConsultaGeneralNomenclaturas.faces")
         wait = WebDriverWait(driver, 30)
         
         wait.until(EC.presence_of_element_located((By.ID, "vistaConsultaGeneral:codigoNomenclatura")))
-        
-        script = f"document.getElementById('vistaConsultaGeneral:codigoNomenclatura').value = '{subpartida}';"
-        driver.execute_script(script)
+        driver.execute_script(f"document.getElementById('vistaConsultaGeneral:codigoNomenclatura').value = '{subpartida}';")
         
         btn_buscar = wait.until(EC.element_to_be_clickable((By.ID, "vistaConsultaGeneral:buscar")))
         driver.execute_script("arguments[0].click();", btn_buscar)
@@ -198,55 +103,56 @@ def scrapper_dian(subpartida):
         elemento_valor = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "itxt")))
         valor_texto = elemento_valor.text.replace('%', '').replace(',', '.').strip()
         
-        gravamen = float(valor_texto)
-        
-        return {"gravamen": gravamen, "iva": 19.0, "success": True, "desde_cache": False}
-
+        return {"gravamen": float(valor_texto), "iva": 19.0, "success": True, "desde_cache": False}
     except Exception as e:
-        return {
-            "error": "No se pudo consultar la DIAN.",
-            "success": False
-        }
-    
+        return {"error": "No se pudo consultar la DIAN.", "success": False}
     finally:
-        if driver:
-            try:
-                driver.quit()
-            except:
-                pass
+        if driver: driver.quit()
 
-# ------------------------------
-# CONSULTAR ARANCEL
-# ------------------------------
+# 3. RUTAS DE NAVEGACIÓN
+@app.route("/")
+def home(): return render_template("index.html")
+
+@app.route('/servicios')
+def servicios(): return render_template('servicios.html')
+
+@app.route('/blog')
+def blog(): return render_template("blog.html", posts=posts)
+
+@app.route('/blog/<slug>')
+def post_detail(slug):
+    post = next((p for p in posts if p["slug"] == slug), None)
+    if not post: abort(404)
+    return render_template("post.html", post=post)
+
+@app.route('/contacto')
+def contacto(): return render_template("contacto.html")
+
+@app.route('/simulador')
+def simulador(): return render_template("simulador.html")
+
+@app.route('/login')
+def login(): return render_template("login.html")
+
+# 4. RUTAS DE API
 @app.route('/consultar-arancel', methods=['GET'])
 def consultar_arancel():
     partida = request.args.get('partida', '').strip()
-    
     if not partida or not partida.isdigit():
-        return jsonify({
-            "error": "Partida inválida",
-            "success": False
-        }), 400
+        return jsonify({"error": "Partida inválida", "success": False}), 400
     
     resultado_cache = obtener_desde_cache(partida)
-    if resultado_cache:
-        return jsonify(resultado_cache)
+    if resultado_cache: return jsonify(resultado_cache)
     
     resultado = scrapper_dian(partida)
-    
     if resultado.get('success'):
         guardar_en_cache(partida, resultado['gravamen'], resultado['iva'])
-    
     return jsonify(resultado)
 
-# ------------------------------
-# SIMULAR
-# ------------------------------
 @app.route('/simular', methods=['POST'])
 def simular():
     try:
         datos = request.json
-        
         empresa = str(datos.get('empresa', 'Anonimo'))[:100]
         valor = float(datos.get('valor', 0))
         flete = float(datos.get('flete', 0))
@@ -259,53 +165,25 @@ def simular():
 
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO simulaciones (empresa, fecha, costo_total) VALUES (?, ?, ?)",
-            (empresa, datetime.now().strftime("%Y-%m-%d %H:%M"), total)
-        )
+        cursor.execute("INSERT INTO simulaciones (empresa, fecha, costo_total) VALUES (?, ?, ?)",
+                       (empresa, datetime.now().strftime("%Y-%m-%d %H:%M"), total))
         conn.commit()
         conn.close()
 
-        return jsonify({
-            "costo_total": round(total, 2),
-            "arancel_calculado": round(arancel, 2),
-            "iva_calculado": round(iva, 2),
-            "cif": round(cif, 2),
-            "success": True
-        })
-        
+        return jsonify({"costo_total": round(total, 2), "arancel_calculado": round(arancel, 2),
+                        "iva_calculado": round(iva, 2), "cif": round(cif, 2), "success": True})
     except Exception as e:
-        return jsonify({
-            "error": f"Error en simulación: {str(e)}",
-            "success": False
-        }), 500
+        return jsonify({"error": str(e), "success": False}), 500
 
-# ------------------------------
-# HISTORIAL
-# ------------------------------
 @app.route('/historial', methods=['GET'])
 def historial():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT empresa, fecha, costo_total 
-        FROM simulaciones 
-        ORDER BY id DESC 
-        LIMIT 10
-    """)
-    
+    cursor.execute("SELECT empresa, fecha, costo_total FROM simulaciones ORDER BY id DESC LIMIT 10")
     resultados = cursor.fetchall()
     conn.close()
-    
-    return jsonify([
-        {"empresa": r[0], "fecha": r[1], "costo_total": r[2]}
-        for r in resultados
-    ])
+    return jsonify([{"empresa": r[0], "fecha": r[1], "costo_total": r[2]} for r in resultados])
 
-# ------------------------------
-# LIMPIAR CACHE
-# ------------------------------
 @app.route('/limpiar-cache', methods=['POST'])
 def limpiar_cache():
     conn = sqlite3.connect(DB_NAME)
@@ -313,11 +191,10 @@ def limpiar_cache():
     cursor.execute("DELETE FROM aranceles_cache")
     conn.commit()
     conn.close()
-    
     return jsonify({"mensaje": "Cache limpiado", "success": True})
 
-# ------------------------------
-# RUN
-# ------------------------------
-if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+# 5. INICIO DE LA APLICACIÓN
+if __name__ == "__main__":
+    crear_tablas()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
