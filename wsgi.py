@@ -9,7 +9,7 @@ try:
     from app import app as application
 except ImportError:
     # Por si el archivo interno también tiene mayúscula: App.py
-    from App import app as application
+    from .App import app as application
 
 if __name__ == "__main__":
     application.run()
