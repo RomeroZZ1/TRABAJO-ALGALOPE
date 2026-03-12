@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>2141 INVERSIONES | Simulador de Importación </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+
+    <style>
+
+        .nav-link {
+    color: #1e3a5f !important;
+    margin-right: 10px;
+    transition: 0.3s;
+}
+
+.nav-link:hover {
+    color: #2c7be5 !important;
+}
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fa;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            padding: 20px 0;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 24px;
+            color: #1e3a5f;
+        }
+
+        /* BOTONES DEL NAVBAR (ESPECÍFICOS) */
+.navbar .btn-outline-custom {
+    border: 2px solid #1e3a5f;
+    color: #1e3a5f;
+    border-radius: 50px;
+    padding: 8px 25px; /* Ajuste para que coincidan en altura */
+    font-weight: 500;
+    transition: 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.navbar .btn-outline-custom:hover {
+    background-color: #1e3a5f;
+    color: white !important;
+}
+
+.navbar .btn-primary-custom {
+    background: linear-gradient(45deg, #1e3a5f, #2c7be5);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 50px;
+    color: white !important;
+    font-weight: 500;
+    transition: 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(44, 123, 229, 0.3);
+}
+
+.navbar .btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(44, 123, 229, 0.4);
+}
+
+
+        .btn-primary-custom {
+            background: linear-gradient(45deg, #1e3a5f, #2c7be5);
+            border: none;
+            padding: 10px 22px;
+            border-radius: 30px;
+            color: white;
+        }
+
+        .btn-outline-custom {
+            border: 2px solid #1e3a5f;
+            color: #1e3a5f;
+            border-radius: 30px;
+            padding: 10px 22px;
+        }
+
+       .hero{
+        position:relative;
+        height:100vh;
+        background-image: url("/static/fondodepantallaimportacion.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        text-align:center;
+        color:white;
+}
+
+
+/* Overlay oscuro elegante */
+.hero-overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.55);
+}
+
+/* Contenido encima */
+.hero-content{
+    position:relative;
+    z-index:2;
+    max-width:1000px;
+    padding:0 20px;
+}
+
+/* TITULO */
+.hero h1{
+    font-size:48px;
+    font-weight:700;
+    margin-bottom:20px;
+}
+
+/* SUBTITULO */
+.hero p{
+    font-size:20px;
+    opacity:0.95;
+    margin-bottom:40px;
+}
+
+/* BOTONES */
+.hero-buttons{
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    margin-top:30px;
+}
+
+/* BOTÓN PRINCIPAL */
+.btn-primary{
+    background:white;
+    color:#1e3a8a;
+    border:none;
+    padding:14px 28px;
+    border-radius:8px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all 0.3s ease;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+
+.btn-primary:hover{
+    transform:translateY(-3px);
+    box-shadow:0 15px 30px rgba(0,0,0,0.3);
+}
+
+/* BOTÓN SECUNDARIO */
+.btn-secondary{
+    background:transparent;
+    border:2px solid white;
+    color:white;
+    padding:14px 28px;
+    border-radius:8px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all 0.3s ease;
+}
+
+.btn-secondary:hover{
+    background:white;
+    color:#1e3a8a;
+    transform:translateY(-3px);
+}
+
+
+        /* SECCIÓN INFO */
+        .section {
+            padding: 80px 0;
+        }
+
+        .card-custom {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding: 30px;
+        }
+
+        .icon-box {
+            font-size: 40px;
+            color: #2c7be5;
+        }
+
+        /* METRICS */
+        .metrics {
+            background: #1e3a5f;
+            color: white;
+            padding: 60px 0;
+        }
+
+        .metric-number {
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        /* CTA */
+        .cta {
+            background: linear-gradient(45deg, #2c7be5, #1e3a5f);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        /* FOOTER */
+        footer {
+            background: #0f1f35;
+            color: white;
+            padding: 40px 0;
+            font-size: 14px;
+        }
+        .blog-card {
+    border-radius: 18px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.blog-section {
+    padding: 80px 0;
+    background-color: #f8f9fa;
+}
+
+.section-title {
+    font-weight: 700;
+    color: #1e3a5f;
+}
+
+.blog-card {
+    border-radius: 20px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.blog-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.blog-image {
+    position: relative;
+    height: 260px;
+    overflow: hidden;
+}
+
+.blog-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.blog-card:hover img {
+    transform: scale(1.08);
+}
+
+.blog-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.75));
+    color: white;
+}
+
+.blog-overlay h5 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.blog-content {
+    padding: 20px;
+}
+
+.blog-meta {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+/* Fuerza al modal a estar por encima de la capa gris */
+.modal {
+    z-index: 1060 !important;
+}
+.modal-backdrop {
+    z-index: 1050 !important;
+}
+/* Asegura que el botón de cerrar sea visible y clickeable */
+.btn-close {
+    z-index: 1070 !important;
+    opacity: 1 !important;
+}
+.hero {
+    position: relative;
+    height: 90vh;
+    background: #f8f9fa; /* Fondo claro minimal */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #1e3a5f;
+}
+
+.hero-overlay {
+    display: none; /* Eliminamos overlay */
+}
+
+.hero h1 {
+    font-size: 44px;
+    font-weight: 600;
+    max-width: 800px;
+    margin: 0 auto 20px auto;
+}
+
+.hero-sub {
+    font-size: 18px;
+    color: #6c757d;
+    margin-bottom: 40px;
+}
+
+.hero-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+.btn-hero-primary {
+    background: #1e3a5f;
+    color: white;
+    padding: 12px 28px;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+
+.btn-hero-primary:hover {
+    background: #16304d;
+}
+
+.btn-hero-secondary {
+    border: 1px solid #1e3a5f;
+    color: #1e3a5f;
+    padding: 12px 28px;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.client-card {
+    padding: 30px 20px;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    background: #ffffff;
+}
+
+.client-logo {
+    max-height: 60px;
+    filter: grayscale(100%);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.client-card h6 {
+    font-weight: 600;
+    color: #1e3a5f;
+}
+
+.client-desc {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+/* Hover elegante */
+.client-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+}
+
+.client-card:hover .client-logo {
+    filter: grayscale(0%);
+    opacity: 1;
+}
+.client-card {
+    padding: 30px 20px;
+    border-radius: 16px;
+    background: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.client-logo {
+    max-height: 70px;
+    filter: grayscale(100%);
+    opacity: 0.75;
+    transition: all 0.3s ease;
+}
+
+.client-card h6 {
+    font-weight: 600;
+    color: #1e3a5f;
+}
+
+.client-desc {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+/* Hover elegante */
+.client-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+}
+
+.client-card:hover .client-logo {
+    filter: grayscale(0%);
+    opacity: 1;
+}
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg bg-white shadow-sm fixed-top">
+    <div class="container">
+
+        <!-- Logo -->
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
+        <img src="static/tierra.png" alt="Logo" width="30" height="30" class="d-inline-block align-text-top me-2">
+        2141 INVERSIONES SAS
+        </a>
+
+        <!-- Botón responsive -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Contenido -->
+        <div class="collapse navbar-collapse justify-content-end" id="navbarContent">
+
+            <!-- Menú -->
+            <ul class="navbar-nav me-4 mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link fw-medium" href="/">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-medium" href="/servicios">Servicios</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-medium" href="/blog">Blog</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-medium" href="/contacto">Contáctenos</a>
+                </li>
+            </ul>
+
+            <!-- Botones -->
+                <div class="d-flex align-items-center">
+                    <a href="/login" class="btn-outline-custom me-3">
+                 Ingreso
+                     </a>
+                    <a href="/registro" class="btn-primary-custom">
+                 Empieza gratis
+                     </a>
+               </div>
+
+        </div>
+    </div>
+</nav>
+
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-content">
+    <h1>
+        Simulación profesional de costos de importación
+    </h1>
+
+    <p class="hero-sub">
+        Calcula aranceles, IVA y gastos logísticos en segundos.
+    </p>
+
+    <div class="hero-buttons">
+        <a href="/simulador" class="btn-hero-primary">
+            Probar simulador
+        </a>
+        <a href="#" class="btn-hero-secondary" data-bs-toggle="modal" data-bs-target="#modalComoFunciona">
+            Cómo funciona
+        </a>
+    </div>
+</div>
+
+            <div class="modal fade" id="modalComoFunciona" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="border-radius: 20px; border: none;">
+      <div class="modal-header" style="border-bottom: none; padding: 30px 30px 10px;">
+        <h3 class="modal-title fw-bold" style="color: #1e3a5f;">¿Cómo funciona el simulador?</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="padding: 10px 30px 30px;">
+        <div class="row text-center g-4">
+            <div class="col-md-4">
+                <div style="font-size: 2rem;">1️⃣</div>
+                <h6 class="fw-bold">Ingresa datos</h6>
+                <p class="small text-muted">Digita el valor FOB, peso y origen de tu mercancía.</p>
+            </div>
+            <div class="col-md-4">
+                <div style="font-size: 2rem;">2️⃣</div>
+                <h6 class="fw-bold">Calcula impuestos</h6>
+                <p class="small text-muted">El sistema aplica aranceles e IVA vigentes automáticamente.</p>
+            </div>
+            <div class="col-md-4">
+                <div style="font-size: 2rem;">3️⃣</div>
+                <h6 class="fw-bold">Obtén el costo</h6>
+                <p class="small text-muted">Descarga un resumen detallado con el costo puesto en bodega.</p>
+            </div>
+        </div>
+        
+        </div>
+      <div class="modal-footer" style="border-top: none; justify-content: center; padding-bottom: 30px;">
+        <button type="button" class="btn btn-primary px-5 rounded-pill" data-bs-dismiss="modal">¡Entendido!</button>
+      </div>
+    </div>
+  </div>
+</div>
+        </div>
+    </div>
+</section>
+<section class="section text-center bg-white">
+    <div class="container">
+        <p class="text-muted mb-5">
+            Empresas que confían en nuestras simulaciones
+        </p>
+
+        <div class="row justify-content-center g-4">
+
+            <!-- Importadora Andina -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="client-card">
+                    <img src="{{ url_for('static', filename='logos/importadora_andina.png') }}"
+                         alt="Importadora Andina"
+                         class="client-logo img-fluid">
+
+                    <h6 class="mt-3">Importadora Andina</h6>
+                    <p class="client-desc">
+                        Comercializadora sector retail
+                    </p>
+                </div>
+            </div>
+
+            <!-- Global Trade -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="client-card">
+                    <img src="{{ url_for('static', filename='logos/global_trade.png') }}"
+                         alt="Global Trade SAS"
+                         class="client-logo img-fluid">
+
+                    <h6 class="mt-3">Global Trade SAS</h6>
+                    <p class="client-desc">
+                        Operador logístico internacional
+                    </p>
+                </div>
+            </div>
+
+            <!-- Comercializadora Nova -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="client-card">
+                    <img src="{{ url_for('static', filename='logos/comercializadora_nova.png') }}"
+                         alt="Comercializadora Nova"
+                         class="client-logo img-fluid">
+
+                    <h6 class="mt-3">Comercializadora Nova</h6>
+                    <p class="client-desc">
+                        Importaciones sector industrial
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+<!-- PROBLEMA / SOLUCIÓN -->
+<section class="section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h3>¿Te ha pasado esto?</h3>
+                <p>
+                    Calculas el flete, pero olvidas impuestos, seguros o gastos portuarios.
+                    Al final, tu carga termina costando mucho más de lo planeado.
+                </p>
+                <p>
+                    Nuestro simulador integra todos los costos logísticos en una sola herramienta.
+                </p>
+            </div>
+            <div class="col-md-6">
+                <div class="card card-custom">
+                    <h4>Con SIMIL puedes:</h4>
+                    <ul>
+                        <li>✔ Simular costos completos</li>
+                        <li>✔ Visualizar margen estimado</li>
+                        <li>✔ Comparar escenarios</li>
+                        <li>✔ Tomar decisiones con datos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="section bg-white">
+    <div class="container text-center">
+        <h2 class="mb-5">¿Por qué 2141 Inversiones?</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <h5>Actualización normativa</h5>
+                <p>Aranceles e IVA alineados con regulación vigente en Colombia.</p>
+            </div>
+            <div class="col-md-4">
+                <h5>Metodología técnica</h5>
+                <p>Modelo estructurado basado en prácticas reales de comercio exterior.</p>
+            </div>
+            <div class="col-md-4">
+                <h5>Enfoque financiero</h5>
+                <p>No solo logística: proyectamos impacto en rentabilidad.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- BENEFICIOS -->
+<section id="beneficios" class="section bg-light">
+    <div class="container text-center">
+        <h2 class="mb-5">Beneficios Clave</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card card-custom">
+                    <div class="icon-box">📊</div>
+                    <h5>Análisis Financiero</h5>
+                    <p>Proyección real de costos totales antes de importar.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-custom">
+                    <div class="icon-box">🚢</div>
+                    <h5>Optimización Logística</h5>
+                    <p>Evalúa diferentes rutas y condiciones de transporte.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-custom">
+                    <div class="icon-box">📈</div>
+                    <h5>Mejor Rentabilidad</h5>
+                    <p>Reduce errores y mejora tus márgenes de ganancia.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="blog-section">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">Novedades relacionadas</h2>
+
+        <div class="row justify-content-center g-4">
+
+            <!-- Caja 1 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="blog-card">
+                    <div class="blog-image">
+                        <img 
+                            src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=800&auto=format&compress&q=80"
+                            alt="Errores logística"
+                            loading="lazy"
+                            width="800"
+                            height="500">
+                        <div class="blog-overlay">
+                            <h5>5 errores comunes al cotizar una operación logística internacional</h5>
+                        </div>
+                    </div>
+                    <div class="blog-content">
+                        <p class="blog-meta">
+                            Deja un comentario · Uncategorized · 
+                            <span>infoplacceo@gmail.com</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Caja 2 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="blog-card">
+                    <div class="blog-image">
+                        <img 
+                            src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&compress&q=80"
+                            alt="Costos importación"
+                            loading="lazy"
+                            width="800"
+                            height="500">
+                        <div class="blog-overlay">
+                            <h5>¿Cómo calcular los costos de importación en Colombia paso a paso?</h5>
+                        </div>
+                    </div>
+                    <div class="blog-content">
+                        <p class="blog-meta">
+                            Deja un comentario · Uncategorized · 
+                            <span>infoplacceo@gmail.com</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Caja 3 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="blog-card">
+                    <div class="blog-image">
+                        <img 
+                            src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&auto=format&compress&q=80"
+                            alt="Posición arancelaria"
+                            loading="lazy"
+                            width="800"
+                            height="500">
+                        <div class="blog-overlay">
+                            <h5>Qué es una posición arancelaria y por qué es clave para importar o exportar</h5>
+                        </div>
+                    </div>
+                    <div class="blog-content">
+                        <p class="blog-meta">
+                            1 comentario · Uncategorized · 
+                            <span>infoplacceo@gmail.com</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- MÉTRICAS -->
+<section class="metrics text-center">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="metric-number">+95%</div>
+                <p>Precisión en estimaciones</p>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-number">+1,200</div>
+                <p>Simulaciones realizadas</p>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-number">+300</div>
+                <p>Empresas apoyadas</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+    <div class="container">
+        <h2>Empieza a tomar decisiones con datos reales</h2>
+        <p class="mt-3">Prueba el simulador ahora y evita pérdidas innecesarias.</p>
+        <a href="/registro" class="btn btn-light btn-lg mt-4">Crear cuenta gratuita</a>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="text-center">
+    <div class="container">
+        <p>© 2026 2141 iNVERSIONES. Plataforma de simulación logística.</p>
+        <p>Contacto: info2141inverisones@gmail.com</p>
+    </div>
+</footer>
+<div class="modal fade" id="modalInfo" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg" style="background: #ffffff !important; opacity: 1 !important; filter: none !important;">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold" style="color: #1e3a5f !important;">¿Cómo funciona el simulador?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex justify-content-around text-center mb-4">
+           <div><span class="fs-1">1️⃣</span><p class="small text-dark">Datos</p></div>
+           <div><span class="fs-1">2️⃣</span><p class="small text-dark">Cálculo</p></div>
+           <div><span class="fs-1">3️⃣</span><p class="small text-dark">PDF</p></div>
+        </div>
+        <p style="color: #444 !important; text-align: center;">Calcula aranceles e IVA vigentes en Colombia automáticamente.</p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" class="btn btn-primary px-5 rounded-pill" data-bs-dismiss="modal">¡Entendido!</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+</body>
+</html>
