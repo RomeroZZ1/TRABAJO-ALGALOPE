@@ -6,7 +6,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 import sqlite3
 import time
 import os
@@ -14,36 +13,33 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
-# Busca donde configuras el driver y añade/reemplaza esto:
-chrome_options = Options()
-chrome_options.add_argument("--headless") # OBLIGATORIO para que Render no falle
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-
-# Luego inicias el driver usando esas opciones:
-# driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-
-
-# ------------------------------
 # CORS CONFIGURADO
-# ------------------------------
 CORS(app, resources={
     r"/*": {
-        "origins": ["http://localhost:3000", "http://127.0.0.1:5000", "http://localhost:5500"],
+        "origins": ["*"], # Simplificado para evitar bloqueos en Render
         "methods": ["GET", "POST"],
         "allow_headers": ["Content-Type"]
     }
 })
 
-DB_NAME = "database.db"
+# --- FUNCIÓN PARA EL DRIVER (Solo se ejecuta cuando se necesita) ---
+def get_driver():
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    # En Render, Chrome ya está en el PATH, no uses ChromeDriverManager
+    return webdriver.Chrome(options=chrome_options)
 
-# ------------------------------
-# RUTA PRINCIPAL (SOLUCIONA 404)
-# ------------------------------
+# --- RUTAS ---
 @app.route("/")
 def home():
     return render_template("index.html")
 
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
+    
 @app.route('/servicios')
 def servicios():
     return render_template('servicios.html')
