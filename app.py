@@ -27,6 +27,7 @@ if __name__ == "__main__":
     crear_tablas() # Se llama aquí
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)def get_driver():
+        
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
