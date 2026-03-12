@@ -12,18 +12,21 @@ import os
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
+CORS(app)
 
-# CORS CONFIGURADO
-CORS(app, resources={
-    r"/*": {
-        "origins": ["*"], # Simplificado para evitar bloqueos en Render
-        "methods": ["GET", "POST"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+# ESTA LÍNEA TIENE QUE ESTAR AQUÍ ARRIBA
+DB_NAME = "database.db" 
 
-# --- FUNCIÓN PARA EL DRIVER (Solo se ejecuta cuando se necesita) ---
-def get_driver():
+# Luego tus funciones
+def crear_tablas():
+    conn = sqlite3.connect(DB_NAME) # Ahora sí vas a saber qué es DB_NAME
+    # ... resto del código de la función ...
+
+# Y al final del archivo, asegúrate de que se llame así:
+if __name__ == "__main__":
+    crear_tablas() # Se llama aquí
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)def get_driver():
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
